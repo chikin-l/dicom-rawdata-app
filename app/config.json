@@ -1,0 +1,11 @@
+{
+    "DEFAULT_LM_INPUT_RAW_FILENAME": "_lm_input.raw",
+    "DEFAULT_LM_HEADER_RAW_FILENAME": "_lm_header.raw",
+    "DEFAULT_LM_HEADER_JSON_FILENAME": "_lm_header.json",
+    "DEFAULT_LM_LM_DATABASE_HEADER_FILENAME": "_lm_lm_database_header.xml",
+    "DEFAULT_LM_PRIVATE_HEADER_FILENAME": "_lm_private_header.txt",
+    "JSON_INDENT": 2,
+    "REGEX_PATTERN_PRIVATE_HEADER": "\\x29\\x00\\x10\\x10OB\\x00\\x00.{1}\\x09\\x00\\x00((.|\n)+)\\x29\\x00\\x08\\x11CS",
+    "REGEX_PATTERN_LM_DATABASE_HEADER": "OB\\x00\\x00.{1}\\x09\\x00\\x00(\\x3c(.|\n)+)\\x0d\\x0a\\x00{1,2}\\x29\\x00\\x20\\x12OB",
+    "SYS_TEMP_FILE": "_sys_temp_"
+}
