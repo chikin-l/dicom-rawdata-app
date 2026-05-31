@@ -51,6 +51,7 @@ def main(args):
     fp = Path(args.file_path)
     dicom_rawdata = DicomRawdata(fp)
     # export
+    print("Export")
     dicom_rawdata.export_input_raw()
     dicom_rawdata.export_header_raw()
     dicom_rawdata.export_header_json()
