@@ -38,7 +38,7 @@ def set_argument():
     required_argument.add_argument(
         "-fp",
         "--file_path",
-        help="Dump rawdata full path",
+        help="File path of DICOM rawdata",
         required=True,
     )
     arguments = parser.parse_args()
