@@ -25,22 +25,30 @@ from pydicom import dcmread
 # Class
 class DicomRawdata:
     def __init__(self, fp):
-        # Initital
-        self.lm_file = Path(fp)
-        # Verify fp
-        if not self.lm_file.exists() or not self.lm_file.is_file():
-            print("Invalid file")
-            sys.exit()
-        # Read config
+        # Config
         try:
             with Path(CONFIG_FILE).open("r") as file_handler:
                 self.CONFIG = json.loads(file_handler.read())
         except:
             print("Cannot read config")
             sys.exit()
-        # Set variables
-        self.parent_folder = self.lm_file.parent
+        #
+        # Initital
+        self.file_info = {}
         self.dicom_rawdata_info = {}
+        self.participant_info = {}
+        self.scan_info = {}
+        self.data_quality = {}
+        #
+        # File info
+        self.file_info["input_file"] = None
+        self.file_info["parent_folder"] = None
+        self.file_info["header_starting_position"] = 0
+        self.file_info["file_size"] = 0
+        self.file_info["remaining_size"] = 0
+        self.file_info["reduced_size"] = 0
+        #
+        # DICOM rawdata info
         self.dicom_rawdata_info["input_raw"] = {
             "data": b"",
             "found": False,
@@ -66,23 +74,20 @@ class DicomRawdata:
             "found": False,
             "file": self.CONFIG["DEFAULT_LM_LM_DATABASE_HEADER_FILENAME"],
         }
-        self.dicom_rawdata_info["header_starting_position"] = 0
-        self.file_size = 0
-        self.remaining_size = 0
-        self.reduced_size = 0
+        #
         # Participant info
-        self.participant_info = {}
         self.participant_info["name"] = ""
         self.participant_info["mrn"] = ""
         self.participant_info["trust"] = ""
         self.participant_info["nhs_num"] = ""
         self.participant_info["dob"] = ""
         self.participant_info["age_at_scan"] = ""
+        self.participant_info["age"] = 0
         self.participant_info["gender"] = ""
-        self.participant_info["height"] = 0
-        self.participant_info["weight"] = 0
+        self.participant_info["height"] = 0.0
+        self.participant_info["weight"] = 0.0
+        #
         # Scan info
-        self.scan_info = {}
         self.scan_info["accession_number"] = ""
         self.scan_info["study_date"] = ""
         self.scan_info["study_time"] = ""
@@ -92,36 +97,56 @@ class DicomRawdata:
         self.scan_info["device_observer_model_name"] = ""
         self.scan_info["device_observer_serial_number"] = ""
         #
+        # Data quality
+        self.data_quality["bmi"] = 0
+        self.data_quality["bmi_category"] = "Unknown"
+        self.data_quality["height_percentile"] = "Unknown"
+        self.data_quality["weight_percentile"] = "Unknown"
+        #
+        # Set fp
+        self.file_info["input_file"] = Path(fp)
+        self.file_info["parent_folder"] = self.file_info["input_file"].parent
+        # Verify fp
+        if (
+            not self.file_info["input_file"].exists()
+            or not self.file_info["input_file"].is_file()
+        ):
+            print("Invalid file")
+            sys.exit()
+        #
         # Automatically run transform
         self.transform_listmode()
 
     def transform_listmode(self):
         # Start
         # Open LISTMODE file in binary format
-        with self.lm_file.open("rb") as file_handler:
+        with self.file_info["input_file"].open("rb") as file_handler:
             # Set search from the end
             current_position = file_handler.seek(0, os.SEEK_END)
-            self.file_size = self.remaining_size = file_handler.tell()
+            self.file_info["file_size"] = self.file_info["remaining_size"] = (
+                file_handler.tell()
+            )
             self.CONFIG["DEFAULT_SETTING_OFFSET"] = min(
-                self.file_size, self.CONFIG["DEFAULT_SETTING_OFFSET"]
+                self.file_info["file_size"], self.CONFIG["DEFAULT_SETTING_OFFSET"]
             )
             if self.CONFIG["DEFAULT_SETTING_DEBUG"]:
-                print(f"lm_file: {self.lm_file}")
-                print(f"file_size: {self.file_size}")
+                print(f"lm_file: {self.file_info["input_file"]}")
+                print(f"file_size: {self.file_info["file_size"]}")
                 print(f"offset: {self.CONFIG["DEFAULT_SETTING_OFFSET"]}")
                 print("")
             buffer_stack = []
             stop = False
             #
             # Start searching
-            while self.remaining_size > 0 and stop == False:
+            while self.file_info["remaining_size"] > 0 and stop == False:
                 seek_position = (
-                    self.remaining_size - self.CONFIG["DEFAULT_SETTING_OFFSET"]
+                    self.file_info["remaining_size"]
+                    - self.CONFIG["DEFAULT_SETTING_OFFSET"]
                 )
                 current_position = file_handler.seek(seek_position)
                 buffer = file_handler.read(
                     min(
-                        self.remaining_size,
+                        self.file_info["remaining_size"],
                         self.CONFIG["DEFAULT_SETTING_BYTES_TO_READ"],
                     )
                 )
@@ -133,15 +158,22 @@ class DicomRawdata:
                 #
                 if all(value == b"\x00" for value in buffer_stack):
                     self.dicom_rawdata_info["input_raw"]["found"] = True
-                    self.dicom_rawdata_info["header_starting_position"] = (
-                        self.remaining_size
+                    self.file_info["header_starting_position"] = (
+                        self.file_info["remaining_size"]
                         + self.CONFIG["DEFAULT_SETTING_BUFFER_SIZE"]
                         - len(buffer_stack)
                     )
                     stop = True
-                self.remaining_size -= self.CONFIG["DEFAULT_SETTING_BYTES_TO_READ"]
-                self.reduced_size = self.file_size - self.remaining_size
-                if self.reduced_size > self.CONFIG["DEFAULT_SETTING_MAX_SEARCH_SIZE"]:
+                self.file_info["remaining_size"] -= self.CONFIG[
+                    "DEFAULT_SETTING_BYTES_TO_READ"
+                ]
+                self.file_info["reduced_size"] = (
+                    self.file_info["file_size"] - self.file_info["remaining_size"]
+                )
+                if (
+                    self.file_info["reduced_size"]
+                    > self.CONFIG["DEFAULT_SETTING_MAX_SEARCH_SIZE"]
+                ):
                     stop = True
                 #
                 if self.CONFIG["DEFAULT_SETTING_DEBUG"]:
@@ -153,10 +185,10 @@ class DicomRawdata:
                         f"info[input_raw][found]: {self.dicom_rawdata_info["input_raw"]["found"]}"
                     )
                     print(
-                        f"info[header_starting_position]: {self.dicom_rawdata_info["header_starting_position"]}"
+                        f"info[header_starting_position]: {self.file_info["header_starting_position"]}"
                     )
-                    print(f"remaining_size: {self.remaining_size}")
-                    print(f"reduced_size: {self.reduced_size}")
+                    print(f"remaining_size: {self.file_info["remaining_size"]}")
+                    print(f"reduced_size: {self.file_info["reduced_size"]}")
                     print(f"stop: {stop}")
                     print("")
             #
@@ -168,7 +200,7 @@ class DicomRawdata:
             if self.CONFIG["DEFAULT_SETTING_DEBUG"]:
                 print("Extract LM header in raw format - Start")
             current_position = file_handler.seek(
-                self.dicom_rawdata_info["header_starting_position"]
+                self.file_info["header_starting_position"]
             )
             self.dicom_rawdata_info["input_raw"]["data"] = file_handler.read()
             if self.CONFIG["DEFAULT_SETTING_DEBUG"]:
@@ -310,6 +342,7 @@ class DicomRawdata:
                 print("Extract LM header info in json format - Done")
                 print("")
             #
+            #
             # Extract participant info
             # name 00100010
             if self.dicom_rawdata_info["header_json"]["data"].get("00100010"):
@@ -337,22 +370,24 @@ class DicomRawdata:
             # trust 00101002 0 00100021
             if self.dicom_rawdata_info["header_json"]["data"].get("00101002"):
                 try:
-                    self.participant_info["nhs_num"] = (
+                    self.participant_info["trust"] = (
                         self.dicom_rawdata_info["header_json"]["data"]
                         .get("00101002")
                         .get("Value")[0]
+                        .get("00100021")
                         .get("Value")[0]
                     )
                 except:
                     pass
             #
-            # nhs_num 00101002 1 00100021
+            # nhs_num 00101002 1 00100020
             if self.dicom_rawdata_info["header_json"]["data"].get("00101002"):
                 try:
                     self.participant_info["nhs_num"] = (
                         self.dicom_rawdata_info["header_json"]["data"]
                         .get("00101002")
                         .get("Value")[1]
+                        .get("00100020")
                         .get("Value")[0]
                     )
                 except:
@@ -377,6 +412,11 @@ class DicomRawdata:
                         .get("00101010")
                         .get("Value")[0]
                     )
+                    #
+                    if "Y" in self.participant_info["age_at_scan"]:
+                        self.participant_info["age"] = int(
+                            self.participant_info["age_at_scan"].replace("Y", "")
+                        )
                 except:
                     pass
             #
@@ -501,35 +541,58 @@ class DicomRawdata:
                 except:
                     pass
             #
+            #
+            # Calculate data quality
+            # bmi
+            # bmi_category
+            # height^2 (Meter) / weight (KG)
+            self.data_quality["bmi"] = (
+                self.participant_info["weight"] / self.participant_info["height"] ** 2
+            )
+            if self.data_quality["bmi"] < 18.5:
+                self.data_quality["bmi_category"] = "Underweight"
+            elif self.data_quality["bmi"] >= 18.5 and self.data_quality["bmi"] < 25:
+                self.data_quality["bmi_category"] = "Healthy weight"
+            elif self.data_quality["bmi"] >= 25 and self.data_quality["bmi"] < 30:
+                self.data_quality["bmi_category"] = "Overweight"
+            elif self.data_quality["bmi"] >= 30 and self.data_quality["bmi"] < 50:
+                self.data_quality["bmi_category"] = "Obese"
+            else:
+                self.data_quality["bmi_category"] = "Obese or Error"
+            #
+            # height_percentile
+            #
+            # weight_percentile
+            #
             # Delete system temp file
             try:
                 Path(self.CONFIG["SYS_TEMP_FILE"]).unlink()
             except:
                 pass
 
-    def export_input_raw(self):
+    def export_input_raw(self, fp=None):
         if self.dicom_rawdata_info["input_raw"]["found"]:
-            with Path(self.dicom_rawdata_info["input_raw"]["file"]).open(
-                "wb"
-            ) as file_handler:
+            if fp == None:
+                fp = self.dicom_rawdata_info["input_raw"]["file"]
+            with Path(fp).open("wb") as file_handler:
                 file_handler.write(self.dicom_rawdata_info["input_raw"]["data"])
         else:
             print("Cannot find raw input")
 
-    def export_header_raw(self):
+    def export_header_raw(self, fp=None):
         if self.dicom_rawdata_info["header_raw"]["found"]:
-            with Path(self.dicom_rawdata_info["header_raw"]["file"]).open(
-                "wb"
-            ) as file_handler:
+            if fp == None:
+                fp = self.dicom_rawdata_info["header_raw"]["file"]
+            with Path(fp).open("wb") as file_handler:
                 file_handler.write(self.dicom_rawdata_info["header_raw"]["data"])
         else:
             print("Cannot find raw header")
 
-    def export_header_json(self):
+    def export_header_json(self, fp=None):
         if self.dicom_rawdata_info["header_json"]["found"]:
-            with Path(self.dicom_rawdata_info["header_json"]["file"]).open(
-                "w"
-            ) as file_handler:
+            if fp == None:
+                fp = self.dicom_rawdata_info["header_json"]["file"]
+            with Path(fp).open("w") as file_handler:
                 json.dump(
                     self.dicom_rawdata_info["header_json"]["data"],
                     file_handler,
@@ -538,20 +601,20 @@ class DicomRawdata:
         else:
             print("Cannot find json header")
 
-    def export_private_header(self):
+    def export_private_header(self, fp=None):
         if self.dicom_rawdata_info["private_header"]["found"]:
-            with Path(self.dicom_rawdata_info["private_header"]["file"]).open(
-                "w"
-            ) as file_handler:
+            if fp == None:
+                fp = self.dicom_rawdata_info["private_header"]["file"]
+            with Path(fp).open("w") as file_handler:
                 file_handler.write(self.dicom_rawdata_info["private_header"]["data"])
         else:
             print("Cannot find private header")
 
-    def export_lm_database_header(self):
+    def export_lm_database_header(self, fp=None):
         if self.dicom_rawdata_info["lm_database_header"]["found"]:
-            with Path(self.dicom_rawdata_info["lm_database_header"]["file"]).open(
-                "w"
-            ) as file_handler:
+            if fp == None:
+                fp = self.dicom_rawdata_info["lm_database_header"]["file"]
+            with Path(fp).open("w") as file_handler:
                 file_handler.write(
                     self.dicom_rawdata_info["lm_database_header"]["data"]
                 )
