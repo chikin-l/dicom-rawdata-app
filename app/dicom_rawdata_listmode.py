@@ -12,6 +12,7 @@ python3 dicom_rawdata_listmode.py -fp #####
 import sys
 import argparse
 from pathlib import Path
+import json
 
 # 3rd party:
 
@@ -50,13 +51,37 @@ def main(args):
     #
     fp = Path(args.file_path)
     dicom_rawdata = DicomRawdata(fp)
+    # 
     # export
-    print("Export")
+    print("export")
     dicom_rawdata.export_input_raw()
     dicom_rawdata.export_header_raw()
     dicom_rawdata.export_header_json()
     dicom_rawdata.export_private_header()
     dicom_rawdata.export_lm_database_header()
+    print()
+    #
+    # file_info 
+    print("file_info")
+    dicom_rawdata.file_info["input_file"] = str(dicom_rawdata.file_info["input_file"])
+    dicom_rawdata.file_info["parent_folder"] = str(dicom_rawdata.file_info["parent_folder"])
+    print(json.dumps(dicom_rawdata.file_info, indent=4))
+    print()
+    #
+    # participant_info 
+    print("participant_info")
+    print(json.dumps(dicom_rawdata.participant_info, indent=4))
+    print()
+    #
+    # scan_info 
+    print("scan_info")
+    print(json.dumps(dicom_rawdata.scan_info, indent=4))
+    print()
+    #
+    # data_quality 
+    print("data_quality")
+    print(json.dumps(dicom_rawdata.data_quality, indent=4))
+    print()
     #
     print("Done")
 

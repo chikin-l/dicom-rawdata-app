@@ -17,6 +17,8 @@ import os
 from pathlib import Path
 import json
 import re
+from datetime import datetime
+from xml.dom import minidom
 
 # 3rd party:
 from pydicom import dcmread
@@ -43,8 +45,8 @@ class DicomRawdata:
         # File info
         self.file_info["input_file"] = None
         self.file_info["parent_folder"] = None
-        self.file_info["header_starting_position"] = 0
         self.file_info["file_size"] = 0
+        self.file_info["header_starting_position"] = 0
         self.file_info["remaining_size"] = 0
         self.file_info["reduced_size"] = 0
         #
@@ -541,6 +543,15 @@ class DicomRawdata:
                 except:
                     pass
             #
+            # 
+            # Calculate age if age_at_scan not exist
+            if self.participant_info["age"] == 0:
+                if self.participant_info["dob"] and self.scan_info["study_date"]:
+                    dob = datetime.strptime(self.participant_info["dob"], "%Y%m%d")
+                    study_date = datetime.strptime(self.scan_info["study_date"], "%Y%m%d")
+                    self.participant_info["age"] = study_date.year - dob.year
+                    if (study_date.month, study_date.day) > (dob.month, dob.day):
+                        self.participant_info["age"] -= 1
             #
             # Calculate data quality
             # bmi
@@ -614,9 +625,11 @@ class DicomRawdata:
         if self.dicom_rawdata_info["lm_database_header"]["found"]:
             if fp == None:
                 fp = self.dicom_rawdata_info["lm_database_header"]["file"]
+            pretty_xml = minidom.parseString(self.dicom_rawdata_info["lm_database_header"]["data"]).toprettyxml(indent="  ").strip()
             with Path(fp).open("w") as file_handler:
                 file_handler.write(
-                    self.dicom_rawdata_info["lm_database_header"]["data"]
+                    # self.dicom_rawdata_info["lm_database_header"]["data"]
+                    pretty_xml
                 )
         else:
             print("Cannot find listmode database header")
