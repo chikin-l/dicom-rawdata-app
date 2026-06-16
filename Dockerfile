@@ -1,0 +1,14 @@
+FROM python:3.12-slim
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+RUN groupadd -g ${GROUP_ID} localadmin && \
+    useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash localadmin
+WORKDIR /app
+COPY app/requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+COPY app/*.py .
+COPY app/config.json .
+RUN chown -R localadmin:localadmin /app
+USER localadmin
+CMD ["python", "dicom_rawdata_listmode.py", "-fp"]
