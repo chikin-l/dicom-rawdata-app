@@ -102,8 +102,6 @@ class DicomRawdata:
         # Data quality
         self.data_quality["bmi"] = 0
         self.data_quality["bmi_category"] = "Unknown"
-        self.data_quality["height_percentile"] = "Unknown"
-        self.data_quality["weight_percentile"] = "Unknown"
         #
         # Set fp
         self.file_info["input_file"] = Path(fp)
@@ -550,7 +548,7 @@ class DicomRawdata:
                     dob = datetime.strptime(self.participant_info["dob"], "%Y%m%d")
                     study_date = datetime.strptime(self.scan_info["study_date"], "%Y%m%d")
                     self.participant_info["age"] = study_date.year - dob.year
-                    if (study_date.month, study_date.day) > (dob.month, dob.day):
+                    if (study_date.month, study_date.day) < (dob.month, dob.day):
                         self.participant_info["age"] -= 1
             #
             # Calculate data quality
@@ -570,10 +568,6 @@ class DicomRawdata:
                 self.data_quality["bmi_category"] = "Obese"
             else:
                 self.data_quality["bmi_category"] = "Obese or Error"
-            #
-            # height_percentile
-            #
-            # weight_percentile
             #
             # Delete system temp file
             try:
