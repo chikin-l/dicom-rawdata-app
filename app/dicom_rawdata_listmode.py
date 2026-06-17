@@ -59,6 +59,7 @@ def main(args):
     dicom_rawdata.export_header_json()
     dicom_rawdata.export_private_header()
     dicom_rawdata.export_lm_database_header()
+    dicom_rawdata.export_header_summary()
     print()
     #
     # file_info 

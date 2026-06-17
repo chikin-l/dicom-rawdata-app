@@ -2,6 +2,7 @@
     "DEFAULT_LM_INPUT_RAW_FILENAME": "_lm_input.raw",
     "DEFAULT_LM_HEADER_RAW_FILENAME": "_lm_header.raw",
     "DEFAULT_LM_HEADER_JSON_FILENAME": "_lm_header.json",
+    "DEFAULT_LM_HEADER_SUMMARY_JSON_FILENAME": "_lm_header_summary.json",
     "DEFAULT_LM_LM_DATABASE_HEADER_FILENAME": "_lm_lm_database_header.xml",
     "DEFAULT_LM_PRIVATE_HEADER_FILENAME": "_lm_private_header.txt",
     "DEFAULT_LM_LM_DATABASE_HEADER_REPLACED_TEXT": "LISTMODE_DATABASE_HEADER_REPLACED",

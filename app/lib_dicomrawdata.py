@@ -541,15 +541,20 @@ class DicomRawdata:
                 except:
                     pass
             #
-            # 
+            #
+            #
             # Calculate age if age_at_scan not exist
             if self.participant_info["age"] == 0:
                 if self.participant_info["dob"] and self.scan_info["study_date"]:
                     dob = datetime.strptime(self.participant_info["dob"], "%Y%m%d")
-                    study_date = datetime.strptime(self.scan_info["study_date"], "%Y%m%d")
+                    study_date = datetime.strptime(
+                        self.scan_info["study_date"], "%Y%m%d"
+                    )
                     self.participant_info["age"] = study_date.year - dob.year
                     if (study_date.month, study_date.day) < (dob.month, dob.day):
                         self.participant_info["age"] -= 1
+            #
+            #
             #
             # Calculate data quality
             # bmi
@@ -578,7 +583,10 @@ class DicomRawdata:
     def export_input_raw(self, fp=None):
         if self.dicom_rawdata_info["input_raw"]["found"]:
             if fp == None:
-                fp = self.dicom_rawdata_info["input_raw"]["file"]
+                fp = (
+                    self.file_info["parent_folder"]
+                    / self.dicom_rawdata_info["input_raw"]["file"]
+                )
             with Path(fp).open("wb") as file_handler:
                 file_handler.write(self.dicom_rawdata_info["input_raw"]["data"])
         else:
@@ -587,7 +595,10 @@ class DicomRawdata:
     def export_header_raw(self, fp=None):
         if self.dicom_rawdata_info["header_raw"]["found"]:
             if fp == None:
-                fp = self.dicom_rawdata_info["header_raw"]["file"]
+                fp = (
+                    self.file_info["parent_folder"]
+                    / self.dicom_rawdata_info["header_raw"]["file"]
+                )
             with Path(fp).open("wb") as file_handler:
                 file_handler.write(self.dicom_rawdata_info["header_raw"]["data"])
         else:
@@ -596,7 +607,10 @@ class DicomRawdata:
     def export_header_json(self, fp=None):
         if self.dicom_rawdata_info["header_json"]["found"]:
             if fp == None:
-                fp = self.dicom_rawdata_info["header_json"]["file"]
+                fp = (
+                    self.file_info["parent_folder"]
+                    / self.dicom_rawdata_info["header_json"]["file"]
+                )
             with Path(fp).open("w") as file_handler:
                 json.dump(
                     self.dicom_rawdata_info["header_json"]["data"],
@@ -609,7 +623,10 @@ class DicomRawdata:
     def export_private_header(self, fp=None):
         if self.dicom_rawdata_info["private_header"]["found"]:
             if fp == None:
-                fp = self.dicom_rawdata_info["private_header"]["file"]
+                fp = (
+                    self.file_info["parent_folder"]
+                    / self.dicom_rawdata_info["private_header"]["file"]
+                )
             with Path(fp).open("w") as file_handler:
                 file_handler.write(self.dicom_rawdata_info["private_header"]["data"])
         else:
@@ -618,8 +635,17 @@ class DicomRawdata:
     def export_lm_database_header(self, fp=None):
         if self.dicom_rawdata_info["lm_database_header"]["found"]:
             if fp == None:
-                fp = self.dicom_rawdata_info["lm_database_header"]["file"]
-            pretty_xml = minidom.parseString(self.dicom_rawdata_info["lm_database_header"]["data"]).toprettyxml(indent="  ").strip()
+                fp = (
+                    self.file_info["parent_folder"]
+                    / self.dicom_rawdata_info["lm_database_header"]["file"]
+                )
+            pretty_xml = (
+                minidom.parseString(
+                    self.dicom_rawdata_info["lm_database_header"]["data"]
+                )
+                .toprettyxml(indent="  ")
+                .strip()
+            )
             with Path(fp).open("w") as file_handler:
                 file_handler.write(
                     # self.dicom_rawdata_info["lm_database_header"]["data"]
@@ -627,3 +653,25 @@ class DicomRawdata:
                 )
         else:
             print("Cannot find listmode database header")
+
+    def export_header_summary(self, fp=None):
+        if fp == None:
+            fp = (
+                self.file_info["parent_folder"]
+                / self.CONFIG["DEFAULT_LM_HEADER_SUMMARY_JSON_FILENAME"]
+            )
+        with Path(fp).open("w") as file_handler:
+            json.dump(
+                {
+                    "file_info": self.file_info,
+                    "participant_info": self.participant_info,
+                    "scan_info": self.scan_info,
+                    "data_quality": self.data_quality,
+                },
+                file_handler,
+                indent=self.CONFIG["JSON_INDENT"],
+                default=str,
+            )
+
+
+# self.CONFIG["DEFAULT_LM_HEADER_SUMMARY_JSON_FILENAME"]
