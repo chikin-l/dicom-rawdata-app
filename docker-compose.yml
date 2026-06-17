@@ -7,7 +7,7 @@ services:
       args:
         USER_ID: 1000
         GROUP_ID: 1000
-    image: bmeis-manage/dicom_rawdata_listmode:v1
+    image: bmeis-dicom/dicom_rawdata_listmode:v1
     container_name: dicom_rawdata_listmode
     working_dir: /app
     volumes:
