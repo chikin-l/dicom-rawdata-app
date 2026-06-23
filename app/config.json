@@ -14,7 +14,7 @@
     "DEFAULT_SETTING_OFFSET": 0,
     "DEFAULT_SETTING_OVERWRITE": false,
     "JSON_INDENT": 2,
-    "REGEX_PATTERN_PRIVATE_HEADER": "\\x29\\x00\\x10\\x10OB\\x00\\x00.{1}\\x09\\x00\\x00((.|\n)+)\\x00\\x29\\x00\\x08\\x11CS",
+    "REGEX_PATTERN_PRIVATE_HEADER": "\\x29\\x00\\x10\\x10OB\\x00\\x00.{1}\\x09\\x00\\x00((.|\n)+)\\x00{0,1}\\x0A{0,1}\\x29\\x00\\x08\\x11CS",
     "REGEX_PATTERN_LM_DATABASE_HEADER": "OB\\x00\\x00.{1}\\x09\\x00\\x00(\\x3c(.|\n)+)\\x0d\\x0a\\x00{1,2}\\x29\\x00\\x20\\x12OB",
     "SYS_TEMP_FILE": "_sys_temp_"
 }
