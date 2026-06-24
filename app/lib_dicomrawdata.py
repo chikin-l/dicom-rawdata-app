@@ -79,6 +79,7 @@ class DicomRawdata:
         #
         # Participant info
         self.participant_info["name"] = ""
+        self.participant_info["initials"] = ""
         self.participant_info["mrn"] = ""
         self.participant_info["trust"] = ""
         self.participant_info["nhs_num"] = ""
@@ -355,6 +356,20 @@ class DicomRawdata:
                     )
                 except:
                     pass
+            #
+            # initials
+            if self.participant_info["name"]:
+                name_list = " ".join(
+                    self.participant_info["name"].strip().removesuffix(".").split("^")
+                ).split(" ")
+                if len(name_list) > 1 and any(
+                    title in name_list[-1]
+                    for title in ["MR", "MRS", "MS", "MISS", "DR"]
+                ):
+                    name_list = name_list[:-1]
+                    self.participant_info["initials"] = "".join(
+                    [initial[0] for initial in name_list]
+                )
             #
             # mrn 00100020
             if self.dicom_rawdata_info["header_json"]["data"].get("00100020"):
