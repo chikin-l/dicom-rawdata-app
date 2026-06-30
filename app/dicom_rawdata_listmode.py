@@ -4,7 +4,7 @@ Author: Chi Kin Lam
 
 Example:
 python3 dicom_rawdata_listmode.py -h
-python3 dicom_rawdata_listmode.py -fp #####
+python3 dicom_rawdata_listmode.py -fp ##### -ofp #####
 """
 
 # Import
@@ -30,10 +30,16 @@ def set_argument():
         Key-value of arguments
     """
     parser = argparse.ArgumentParser(
-        description="usage example:\n1. $ python3 dicom_rawdata_listmode.py -fp #####",
+        description="usage example:\n1. $ python3 dicom_rawdata_listmode.py -fp ##### -ofp #####",
         formatter_class=argparse.RawTextHelpFormatter,
     )
     # Optional
+    parser.add_argument(
+        "-ofp",
+        "--optional_file_path",
+        help="Optional file path",
+        default="",
+    )
     # Required
     required_argument = parser.add_argument_group("required arguments")
     required_argument.add_argument(
@@ -50,8 +56,8 @@ def main(args):
     print("DICOM rawdata listmode")
     #
     fp = Path(args.file_path)
-    dicom_rawdata = DicomRawdata(fp)
-    # 
+    dicom_rawdata = DicomRawdata(fp, args.optional_file_path)
+    #
     # export
     print("export")
     dicom_rawdata.export_input_raw()
@@ -62,24 +68,26 @@ def main(args):
     dicom_rawdata.export_header_summary()
     print()
     #
-    # file_info 
+    # file_info
     print("file_info")
     dicom_rawdata.file_info["input_file"] = str(dicom_rawdata.file_info["input_file"])
-    dicom_rawdata.file_info["parent_folder"] = str(dicom_rawdata.file_info["parent_folder"])
+    dicom_rawdata.file_info["parent_folder"] = str(
+        dicom_rawdata.file_info["parent_folder"]
+    )
     print(json.dumps(dicom_rawdata.file_info, indent=4))
     print()
     #
-    # participant_info 
+    # participant_info
     print("participant_info")
     print(json.dumps(dicom_rawdata.participant_info, indent=4))
     print()
     #
-    # scan_info 
+    # scan_info
     print("scan_info")
     print(json.dumps(dicom_rawdata.scan_info, indent=4))
     print()
     #
-    # data_quality 
+    # data_quality
     print("data_quality")
     print(json.dumps(dicom_rawdata.data_quality, indent=4))
     print()

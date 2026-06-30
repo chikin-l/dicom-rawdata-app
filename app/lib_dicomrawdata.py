@@ -26,7 +26,7 @@ from pydicom import dcmread
 
 # Class
 class DicomRawdata:
-    def __init__(self, fp):
+    def __init__(self, fp, ofp):
         # Config
         try:
             with Path(CONFIG_FILE).open("r") as file_handler:
@@ -45,6 +45,8 @@ class DicomRawdata:
         # File info
         self.file_info["input_file"] = None
         self.file_info["parent_folder"] = None
+        self.file_info["optional_input_file"] = None
+        self.file_info["optional_parent_folder"] = None
         self.file_info["file_size"] = 0
         self.file_info["header_starting_position"] = 0
         self.file_info["remaining_size"] = 0
@@ -107,6 +109,9 @@ class DicomRawdata:
         # Set fp
         self.file_info["input_file"] = Path(fp)
         self.file_info["parent_folder"] = self.file_info["input_file"].parent
+        if ofp:
+            self.file_info["optional_input_file"] = ofp
+            self.file_info["optional_parent_folder"] = Path(ofp).parent.as_posix()
         # Verify fp
         if (
             not self.file_info["input_file"].exists()
@@ -368,8 +373,8 @@ class DicomRawdata:
                 ):
                     name_list = name_list[:-1]
                     self.participant_info["initials"] = "".join(
-                    [initial[0] for initial in name_list]
-                )
+                        [initial[0] for initial in name_list]
+                    )
             #
             # mrn 00100020
             if self.dicom_rawdata_info["header_json"]["data"].get("00100020"):
