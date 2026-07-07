@@ -23,9 +23,23 @@ from xml.dom import minidom
 # 3rd party:
 from pydicom import dcmread
 
+"""
+DicomRawdataListmode
+    transform_listmode(self)
+    export_input_raw(self, fp=None)
+    export_header_raw(self, fp=None)
+    export_header_json(self, fp=None)
+    export_private_header(self, fp=None)
+    export_lm_database_header(self, fp=None)
+    export_header_summary(self, fp=None)
+
+DicomRawdataDirectory
+    transform_folder(self)
+"""
+
 
 # Class
-class DicomRawdata:
+class DicomRawdataListmode:
     def __init__(self, fp, ofp):
         # Config
         try:
@@ -47,6 +61,7 @@ class DicomRawdata:
         self.file_info["parent_folder"] = None
         self.file_info["optional_input_file"] = None
         self.file_info["optional_parent_folder"] = None
+        self.file_info["sys_timestamp"] = datetime.now().isoformat()
         self.file_info["file_size"] = 0
         self.file_info["header_starting_position"] = 0
         self.file_info["remaining_size"] = 0
@@ -106,19 +121,17 @@ class DicomRawdata:
         self.data_quality["bmi"] = 0
         self.data_quality["bmi_category"] = "Unknown"
         #
-        # Set fp
-        self.file_info["input_file"] = Path(fp)
-        self.file_info["parent_folder"] = self.file_info["input_file"].parent
-        if ofp:
-            self.file_info["optional_input_file"] = ofp
-            self.file_info["optional_parent_folder"] = Path(ofp).parent.as_posix()
         # Verify fp
-        if (
-            not self.file_info["input_file"].exists()
-            or not self.file_info["input_file"].is_file()
-        ):
+        if not (fp.exists() and fp.is_file() and fp.suffix == ".ptd"):
             print("Invalid file")
             sys.exit()
+        #
+        # Set fp
+        self.file_info["input_file"] = fp
+        self.file_info["parent_folder"] = fp.parent
+        if ofp:
+            self.file_info["optional_input_file"] = ofp.as_posix()
+            self.file_info["optional_parent_folder"] = Path(ofp).parent.as_posix()
         #
         # Automatically run transform
         self.transform_listmode()
@@ -636,6 +649,7 @@ class DicomRawdata:
                     self.dicom_rawdata_info["header_json"]["data"],
                     file_handler,
                     indent=self.CONFIG["JSON_INDENT"],
+                    default=str,
                 )
         else:
             print("Cannot find json header")
@@ -694,4 +708,116 @@ class DicomRawdata:
             )
 
 
-# self.CONFIG["DEFAULT_LM_HEADER_SUMMARY_JSON_FILENAME"]
+class DicomRawdataDirectory:
+    def __init__(self, dp, odp):
+        # Config
+        try:
+            with Path(CONFIG_FILE).open("r") as file_handler:
+                self.CONFIG = json.loads(file_handler.read())
+        except:
+            print("Cannot read config")
+            sys.exit()
+        #
+        # Initital
+        self.directory_info = {}
+        self.directory_info["input_directory"] = None
+        self.directory_info["optional_input_directory"] = None
+        self.directory_info["sys_timestamp"] = datetime.now().isoformat()
+        self.directory_info["directory_name"] = ""
+        self.directory_info["file_all_list"] = []
+        self.directory_info["file_top_list"] = []
+        self.directory_info["file_calibration"] = ""
+        self.directory_info["file_countrate"] = ""
+        self.directory_info["file_listmode"] = ""
+        self.directory_info["file_modality"] = ""
+        self.directory_info["file_physio"] = ""
+        self.directory_info["file_count"] = 0
+        self.directory_info["directory_size"] = 0
+        self.directory_info["subdirectory"] = []
+        #
+        # Verify dp
+        if not (dp.exists() and dp.is_dir()):
+            print("Invalid directory")
+            sys.exit()
+        #
+        # Set dp
+        self.directory_info["input_directory"] = dp
+        self.directory_info["optional_input_directory"] = odp
+        self.directory_info["directory_name"] = dp.name
+        if odp:
+            self.directory_info["optional_input_directory"] = odp
+        #
+        # Automatically run transform
+        self.transform_directory()
+
+    #
+    def transform_directory(self):
+        # Exclude list
+        exclude_list = []
+        exclude_list.append(self.CONFIG["DEFAULT_DS_SUMMARY_JSON_FILENAME"])
+        exclude_list.append(self.CONFIG["DEFAULT_LM_INPUT_RAW_FILENAME"])
+        exclude_list.append(self.CONFIG["DEFAULT_LM_HEADER_RAW_FILENAME"])
+        exclude_list.append(self.CONFIG["DEFAULT_LM_HEADER_JSON_FILENAME"])
+        exclude_list.append(self.CONFIG["DEFAULT_LM_HEADER_SUMMARY_JSON_FILENAME"])
+        exclude_list.append(self.CONFIG["DEFAULT_LM_LM_DATABASE_HEADER_FILENAME"])
+        exclude_list.append(self.CONFIG["DEFAULT_LM_PRIVATE_HEADER_FILENAME"])
+        # Walk
+        for file_fp in self.directory_info["input_directory"].rglob("*"):
+            if file_fp.is_file():
+                # Exclude
+                if file_fp.name in exclude_list:
+                    continue
+                self.directory_info["file_all_list"].append(file_fp.name)
+                self.directory_info["file_count"] += 1
+                self.directory_info["directory_size"] += file_fp.stat().st_size
+                # CALIBRATION
+                if (
+                    re.search(self.CONFIG["DEFAULT_DS_REGEX_CALIBRATION"], file_fp.name)
+                    and file_fp.suffix == ".ptd"
+                ):
+                    self.directory_info["file_calibration"] = file_fp.name
+                # COUNTRATE
+                if (
+                    re.search(self.CONFIG["DEFAULT_DS_REGEX_COUNTRATE"], file_fp.name)
+                    and file_fp.suffix == ".ptd"
+                ):
+                    self.directory_info["file_countrate"] = file_fp.name
+                # LISTMODE
+                if (
+                    re.search(self.CONFIG["DEFAULT_DS_REGEX_LISTMODE"], file_fp.name)
+                    and file_fp.suffix == ".ptd"
+                ):
+                    self.directory_info["file_listmode"] = file_fp.name
+                # MODALITY
+                if (
+                    re.search(self.CONFIG["DEFAULT_DS_REGEX_MODALITY"], file_fp.name)
+                    and file_fp.suffix == ".ptd"
+                ):
+                    self.directory_info["file_modality"] = file_fp.name
+                # DEFAULT_DS_REGEX_PHYSIO
+                if (
+                    re.search(self.CONFIG["DEFAULT_DS_REGEX_PHYSIO"], file_fp.name)
+                    and file_fp.suffix == ".ptd"
+                ):
+                    self.directory_info["file_physio"] = file_fp.name
+            elif file_fp.is_dir():
+                self.directory_info["subdirectory"].append(file_fp.name)
+        #
+        # Sort
+        self.directory_info["file_all_list"].sort()
+        # Extract top 3
+        self.directory_info["file_top_list"] = self.directory_info["file_all_list"][0:3]
+
+    def export_directory_summary(self, fp=None):
+        if fp == None:
+            fp = (
+                self.directory_info["input_directory"]
+                / self.CONFIG["DEFAULT_DS_SUMMARY_JSON_FILENAME"]
+            )
+        with Path(fp).open("w") as file_handler:
+            json.dump(
+                {"directory_info": self.directory_info},
+                file_handler,
+                indent=self.CONFIG["JSON_INDENT"],
+                default=str,
+            )
