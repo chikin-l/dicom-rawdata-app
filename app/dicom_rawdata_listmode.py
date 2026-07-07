@@ -49,10 +49,7 @@ def set_argument():
         default="",
     )
     parser.add_argument(
-        "-vvvv",
-        "--verbose",
-        help="Verbose",
-        action="store_true",
+        "-vvvv", "--verbose", help="Verbose", action="store_true", default=False
     )
     # Required
     required_argument = parser.add_argument_group("required arguments")
