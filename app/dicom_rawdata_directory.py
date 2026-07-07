@@ -67,7 +67,8 @@ def set_argument():
 
 
 def main(args):
-    print("DICOM rawdata listmode")
+    if args.verbose:
+        print("DICOM rawdata listmode")
     #
     dp = Path(args.directory_path)
     odp = Path(args.optional_directory_path)
