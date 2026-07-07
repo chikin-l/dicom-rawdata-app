@@ -9,7 +9,7 @@ fi
 
 FILE="$1"
 VERBOSE=""
-if [[ "$2" == "-vvvv" || "$2" == "--verbose" ]]; then
+if [[ "${2:-}" == "-vvvv" || "${2:-}" == "--verbose" ]]; then
   VERBOSE="$2"
 fi
 
