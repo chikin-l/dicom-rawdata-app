@@ -1,30 +1,15 @@
 name: bmeis-dicom
 services:
 
-  dicom_rawdata_listmode:
+  dicom-rawdata:
     build:
       context: .
-      dockerfile: Dockerfile.listmode
+      dockerfile: Dockerfile
       args:
         USER_ID: 1000
         GROUP_ID: 1000
-    image: bmeis-dicom/dicom-rawdata-listmode:v1
-    container_name: dicom-rawdata-listmode
-    working_dir: /app
-    volumes:
-      - ./app:/app
-    environment:
-      - PYTHONUNBUFFERED=1
-
-  dicom_rawdata_directory:
-    build:
-      context: .
-      dockerfile: Dockerfile.directory
-      args:
-        USER_ID: 1000
-        GROUP_ID: 1000
-    image: bmeis-dicom/dicom-rawdata-directory:v1
-    container_name: dicom-rawdata-directory
+    image: bmeis-dicom/dicom-rawdata:v1
+    container_name: dicom-rawdata
     working_dir: /app
     volumes:
       - ./app:/app

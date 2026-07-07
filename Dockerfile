@@ -11,4 +11,3 @@ COPY app/*.py .
 COPY app/config.json .
 RUN chown -R localadmin:localadmin /app
 USER localadmin
-# CMD ["python", "dicom_rawdata_directory.py", "-h"]

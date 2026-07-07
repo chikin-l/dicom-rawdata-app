@@ -15,7 +15,7 @@ fi
 
 docker compose run --rm \
   -v "$(dirname "$FILE"):/input" \
-  dicom_rawdata_listmode \
+  dicom-rawdata \
   python dicom_rawdata_listmode.py -fp "/input/$(basename "$FILE")" -ofp "$FILE" $VERBOSE \
   > >(grep -v '\[WARNING\]') 2> >(grep -Ev 'Container .* (Creating|Created)|\[WARNING\]' >&2)
 
