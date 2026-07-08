@@ -8,7 +8,7 @@ URL - https://pydicom.github.io/
 """
 
 # Static variables
-CONFIG_FILE = "config.json"
+CONFIG_FILE = "config/config.json"
 
 # Import
 # Python:

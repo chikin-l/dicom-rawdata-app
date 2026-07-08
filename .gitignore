@@ -1,6 +1,6 @@
 # Json file
 *.json
-!app/config.json
+!app/config/config.json
 
 # Mac
 .DS_Store
