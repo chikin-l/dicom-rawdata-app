@@ -5,7 +5,8 @@ DICOM Raw data medical image utility
 ## How to install
 This app is for Linux and Mac only.
 
-Install Docker.
+Install [Docker for Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+or [Docker Desktop on Mac](https://docs.docker.com/desktop/setup/install/mac-install/)
 
 Run
 ```
