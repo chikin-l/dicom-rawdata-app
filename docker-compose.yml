@@ -5,13 +5,16 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+        - linux/arm64
       args:
         USER_ID: 1000
         GROUP_ID: 1000
-    image: bmeis-dicom/dicom-rawdata-app:v1
+    image: chikinl/dicom-rawdata-app:latest
     container_name: dicom-rawdata-app
     working_dir: /app
     volumes:
-      - ./app:/app
+      - ./app/config/config.json:/app/config/config.json:ro
     environment:
       - PYTHONUNBUFFERED=1
