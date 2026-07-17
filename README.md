@@ -30,7 +30,7 @@ Run
 docker pull chikinl/dicom-rawdata-app
 ```
 
-\
+<br />
 
 ## How to run
 
