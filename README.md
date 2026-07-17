@@ -8,7 +8,7 @@ This app is for Linux and Mac only.
 
 Install Docker.
 
-Run
+Run:
 docker pull chikinl/dicom-rawdata-app
 
 
