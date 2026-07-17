@@ -14,6 +14,10 @@ Run
 docker pull chikinl/dicom-rawdata-app
 ```
 
+### For Windows user
+
+You can run this with [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install)
+
 
 ## How to run
 
