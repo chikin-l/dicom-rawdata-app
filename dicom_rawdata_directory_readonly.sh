@@ -2,8 +2,8 @@
 set -euo pipefail
 
 if [ "$#" -lt 1 ]; then
-  echo "Error: missing input file."
-  echo "Usage: $0 /path/to/input-file"
+  echo "Error: missing input directory."
+  echo "Usage: $0 /path/to/input-directory"
   exit 1
 fi
 
@@ -16,7 +16,7 @@ fi
 docker compose run --rm \
   -v "$(dirname "$FILE"):/input" \
   dicom-rawdata-app \
-  python dicom_rawdata_listmode.py -fp "/input/$(basename "$FILE")" -ofp "$FILE" $VERBOSE \
+  python dicom_rawdata_directory.py -dp "/input/$(basename "$FILE")" -odp "$FILE" -ro $VERBOSE \
   > >(grep -v '\[WARNING\]') 2> >(grep -Ev 'Container .* (Creating|Created)|\[WARNING\]' >&2)
 
 exit 0

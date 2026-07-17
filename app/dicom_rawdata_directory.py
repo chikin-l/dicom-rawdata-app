@@ -49,6 +49,9 @@ def set_argument():
         default="",
     )
     parser.add_argument(
+        "-ro", "--readonly", help="Read-only", action="store_true", default=False
+    )
+    parser.add_argument(
         "-vvvv", "--verbose", help="Verbose", action="store_true", default=False
     )
     # Required
@@ -65,14 +68,21 @@ def set_argument():
 
 def main(args):
     if args.verbose:
-        print("DICOM rawdata listmode")
+        print("DICOM rawdata directory")
     #
     dp = Path(args.directory_path)
     odp = Path(args.optional_directory_path)
     dicom_rawdata = DicomRawdataDirectory(dp, odp)
     #
-    # export
-    dicom_rawdata.export_directory_summary()
+    if args.readonly:
+        # readonly
+        # directory_info
+        print("directory_info")
+        print(json.dumps(dicom_rawdata.directory_info, indent=4, default=str))
+        print()
+    else:
+        # export
+        dicom_rawdata.export_directory_summary()
     #
     if args.verbose:
         # directory_info

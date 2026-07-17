@@ -1,15 +1,15 @@
 name: bmeis-dicom
 services:
 
-  dicom-rawdata:
+  dicom-rawdata-app:
     build:
       context: .
       dockerfile: Dockerfile
       args:
         USER_ID: 1000
         GROUP_ID: 1000
-    image: bmeis-dicom/dicom-rawdata:v1
-    container_name: dicom-rawdata
+    image: bmeis-dicom/dicom-rawdata-app:v1
+    container_name: dicom-rawdata-app
     working_dir: /app
     volumes:
       - ./app:/app

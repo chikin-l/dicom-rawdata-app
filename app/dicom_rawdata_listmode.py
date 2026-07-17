@@ -49,6 +49,9 @@ def set_argument():
         default="",
     )
     parser.add_argument(
+        "-ro", "--readonly", help="Read-only", action="store_true", default=False
+    )
+    parser.add_argument(
         "-vvvv", "--verbose", help="Verbose", action="store_true", default=False
     )
     # Required
@@ -71,13 +74,41 @@ def main(args):
     ofp = Path(args.optional_file_path)
     dicom_rawdata = DicomRawdataListmode(fp, ofp)
     #
-    # export
-    dicom_rawdata.export_input_raw()
-    dicom_rawdata.export_header_raw()
-    dicom_rawdata.export_header_json()
-    dicom_rawdata.export_private_header()
-    dicom_rawdata.export_lm_database_header()
-    dicom_rawdata.export_header_summary()
+    if args.readonly:
+        # readonly
+        # file_info
+        print("file_info")
+        dicom_rawdata.file_info["input_file"] = str(
+            dicom_rawdata.file_info["input_file"]
+        )
+        dicom_rawdata.file_info["parent_folder"] = str(
+            dicom_rawdata.file_info["parent_folder"]
+        )
+        print(json.dumps(dicom_rawdata.file_info, indent=4, default=str))
+        print()
+        #
+        # participant_info
+        print("participant_info")
+        print(json.dumps(dicom_rawdata.participant_info, indent=4, default=str))
+        print()
+        #
+        # scan_info
+        print("scan_info")
+        print(json.dumps(dicom_rawdata.scan_info, indent=4, default=str))
+        print()
+        #
+        # data_quality
+        print("data_quality")
+        print(json.dumps(dicom_rawdata.data_quality, indent=4, default=str))
+        print()
+    else:
+        # export
+        dicom_rawdata.export_input_raw()
+        dicom_rawdata.export_header_raw()
+        dicom_rawdata.export_header_json()
+        dicom_rawdata.export_private_header()
+        dicom_rawdata.export_lm_database_header()
+        dicom_rawdata.export_header_summary()
     #
     if args.verbose:
         # file_info
