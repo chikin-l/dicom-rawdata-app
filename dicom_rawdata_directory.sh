@@ -13,7 +13,7 @@ if [[ "${2:-}" == "-vvvv" || "${2:-}" == "--verbose" ]]; then
   VERBOSE="$2"
 fi
 
-docker compose run --rm \
+docker run --rm \
   -v "$(dirname "$FILE"):/input" \
   dicom-rawdata-app \
   python dicom_rawdata_directory.py -dp "/input/$(basename "$FILE")" -odp "$FILE" $VERBOSE \
