@@ -2,6 +2,7 @@
 DICOM rawdata medical image app
 
 
+
 ## How to install
 
 ### This app is for Linux and Mac only.
@@ -16,7 +17,19 @@ docker pull chikinl/dicom-rawdata-app
 
 ### For Windows user
 
-You can run this with [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install)
+You can run this with WSL (Windows Subsystem for Linux).
+
+[Install WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
+
+Install Ubuntu 24.04 from the Microsoft Store
+
+In the Ubuntu 24.04 WSL, install the [Docker for Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
+
+Run
+```
+docker pull chikinl/dicom-rawdata-app
+```
+
 
 
 ## How to run
