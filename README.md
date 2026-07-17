@@ -1,5 +1,5 @@
-# dicom-rawdata
-DICOM Raw data medical image utility
+# dicom-rawdata-app
+DICOM rawdata medical image app
 
 
 ## How to install
