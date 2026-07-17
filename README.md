@@ -15,14 +15,6 @@ docker pull chikinl/dicom-rawdata-app
 ```
 
 
-## How to build (Optional)
-
-Download or clone the source code
-```
-docker compose build
-```
-
-
 ## How to run
 
 Download the 4 shell scripts
@@ -45,4 +37,6 @@ dicom_rawdata_directory_readonly.sh [DIRECTORY_PATH]
 ### Export folder summary to file
 ```
 dicom_rawdata_directory.sh [DIRECTORY_PATH]
+```
+
 ```
