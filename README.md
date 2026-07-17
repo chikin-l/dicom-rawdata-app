@@ -39,4 +39,3 @@ dicom_rawdata_directory_readonly.sh [DIRECTORY_PATH]
 dicom_rawdata_directory.sh [DIRECTORY_PATH]
 ```
 
-```
