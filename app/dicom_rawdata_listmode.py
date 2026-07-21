@@ -74,8 +74,8 @@ def main(args):
     ofp = Path(args.optional_file_path)
     dicom_rawdata = DicomRawdataListmode(fp, ofp)
     #
-    if args.readonly:
-        # readonly
+    if args.readonly or args.verbose:
+        # readonly or verbose
         # file_info
         print("file_info")
         dicom_rawdata.file_info["input_file"] = str(
@@ -101,7 +101,13 @@ def main(args):
         print("data_quality")
         print(json.dumps(dicom_rawdata.data_quality, indent=4, default=str))
         print()
-    else:
+        #
+        # pii
+        print("pii")
+        print(json.dumps(dicom_rawdata.pii, indent=4, default=str))
+        print()
+    # 
+    if not args.readonly:
         # export
         dicom_rawdata.export_input_raw()
         dicom_rawdata.export_header_raw()
@@ -109,33 +115,6 @@ def main(args):
         dicom_rawdata.export_private_header()
         dicom_rawdata.export_lm_database_header()
         dicom_rawdata.export_header_summary()
-    #
-    if args.verbose:
-        # file_info
-        print("file_info")
-        dicom_rawdata.file_info["input_file"] = str(
-            dicom_rawdata.file_info["input_file"]
-        )
-        dicom_rawdata.file_info["parent_folder"] = str(
-            dicom_rawdata.file_info["parent_folder"]
-        )
-        print(json.dumps(dicom_rawdata.file_info, indent=4, default=str))
-        print()
-        #
-        # participant_info
-        print("participant_info")
-        print(json.dumps(dicom_rawdata.participant_info, indent=4, default=str))
-        print()
-        #
-        # scan_info
-        print("scan_info")
-        print(json.dumps(dicom_rawdata.scan_info, indent=4, default=str))
-        print()
-        #
-        # data_quality
-        print("data_quality")
-        print(json.dumps(dicom_rawdata.data_quality, indent=4, default=str))
-        print()
     #
     print("DONE")
 

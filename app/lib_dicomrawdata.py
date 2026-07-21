@@ -55,6 +55,7 @@ class DicomRawdataListmode:
         self.participant_info = {}
         self.scan_info = {}
         self.data_quality = {}
+        self.pii = {}
         #
         # File info
         self.file_info["input_file"] = None
@@ -95,31 +96,39 @@ class DicomRawdataListmode:
         }
         #
         # Participant info
-        self.participant_info["name"] = ""
+        self.participant_info["name"] = ""  # 00100010
         self.participant_info["initials"] = ""
-        self.participant_info["mrn"] = ""
-        self.participant_info["trust"] = ""
-        self.participant_info["nhs_num"] = ""
-        self.participant_info["dob"] = ""
-        self.participant_info["age_at_scan"] = ""
+        self.participant_info["mrn"] = ""  # 00100020
+        self.participant_info["trust"] = ""  # 00101002 0 00100021
+        self.participant_info["nhs_num"] = ""  # 00101002 [0|1] 00100020
+        self.participant_info["dob"] = ""  # 00100030
+        self.participant_info["age_at_scan"] = ""  # 00101010
         self.participant_info["age"] = 0
-        self.participant_info["gender"] = ""
-        self.participant_info["height"] = 0.0
-        self.participant_info["weight"] = 0.0
+        self.participant_info["gender"] = ""  # 00100040
+        self.participant_info["height"] = 0.0  # 00101020
+        self.participant_info["weight"] = 0.0  # 00101030
         #
         # Scan info
-        self.scan_info["accession_number"] = ""
-        self.scan_info["study_date"] = ""
-        self.scan_info["study_time"] = ""
-        self.scan_info["acquisition_modality"] = ""
-        self.scan_info["device_observer_manufacturer"] = ""
-        self.scan_info["device_observer_name"] = ""
-        self.scan_info["device_observer_model_name"] = ""
-        self.scan_info["device_observer_serial_number"] = ""
+        self.scan_info["accession_number"] = ""  # 00080050
+        self.scan_info["study_date"] = ""  # 00080020
+        self.scan_info["study_time"] = ""  # 00080030
+        self.scan_info["acquisition_modality"] = ""  # 00080060
+        self.scan_info["device_observer_manufacturer"] = ""  # 00080070
+        self.scan_info["device_observer_name"] = ""  # 00081010
+        self.scan_info["device_observer_model_name"] = ""  # 00081090
+        self.scan_info["device_observer_serial_number"] = ""  # 00181000
         #
         # Data quality
         self.data_quality["bmi"] = 0
         self.data_quality["bmi_category"] = "Unknown"
+        #
+        # Personally Identifiable Information
+        self.pii["overall"] = False
+        self.pii["field"] = {}
+        self.pii["field"]["name"] = False
+        self.pii["field"]["mrn"] = False
+        self.pii["field"]["nhs_num"] = False
+        self.pii["field"]["dob"] = False
         #
         # Verify fp
         if not (fp.exists() and fp.is_file() and fp.suffix == ".ptd"):
@@ -416,7 +425,27 @@ class DicomRawdataListmode:
             # nhs_num 00101002 1 00100020
             if self.dicom_rawdata_info["header_json"]["data"].get("00101002"):
                 try:
-                    self.participant_info["nhs_num"] = (
+                    if (self.dicom_rawdata_info["header_json"]["data"]
+                        .get("00101002")
+                        .get("Value")[0]
+                        .get("00100021")
+                        .get("Value")[0]) == "NHS":
+                        self.participant_info["nhs_num"] = (
+                        self.dicom_rawdata_info["header_json"]["data"]
+                        .get("00101002")
+                        .get("Value")[0]
+                        .get("00100020")
+                        .get("Value")[0]
+                    )
+                except:
+                    pass
+                try:
+                    if (self.dicom_rawdata_info["header_json"]["data"]
+                        .get("00101002")
+                        .get("Value")[1]
+                        .get("00100021")
+                        .get("Value")[0]) == "NHS":
+                        self.participant_info["nhs_num"] = (
                         self.dicom_rawdata_info["header_json"]["data"]
                         .get("00101002")
                         .get("Value")[1]
@@ -589,14 +618,47 @@ class DicomRawdataListmode:
             #
             #
             #
+            # Verify protected health information
+            # name
+            if self.participant_info["name"] and "^" in self.participant_info["name"]:
+                self.pii["field"]["name"] = True
+            # mrn
+            if (
+                self.participant_info["mrn"]
+                and self.participant_info["mrn"].isdigit()
+                and len(self.participant_info["mrn"]) == 8
+            ):
+                self.pii["field"]["mrn"] = True
+            # nhs_num
+            if (
+                self.participant_info["nhs_num"]
+                and self.participant_info["nhs_num"].isdigit()
+                and len(self.participant_info["nhs_num"]) == 10
+            ):
+                self.pii["field"]["nhs_num"] = True
+            # dob
+            if (
+                self.participant_info["dob"]
+                and self.participant_info["dob"].isdigit()
+                and self.participant_info["dob"][-4:] != "0101"
+            ):
+                self.pii["field"]["dob"] = True
+            # Overall
+            if any(self.pii["field"].values()):
+                self.pii["overall"] = True
+            #
+            #
+            #
             # Calculate data quality
             # bmi
             # bmi_category
-            # height^2 (Meter) / weight (KG)
-            self.data_quality["bmi"] = (
-                self.participant_info["weight"] / self.participant_info["height"] ** 2
-            )
-            if self.data_quality["bmi"] < 18.5:
+            # weight (KG) / height^2 (Meter)
+            if self.participant_info["height"]:
+                self.data_quality["bmi"] = (
+                    self.participant_info["weight"]
+                    / self.participant_info["height"] ** 2
+                )
+            if self.data_quality["bmi"] > 0 and self.data_quality["bmi"] < 18.5:
                 self.data_quality["bmi_category"] = "Underweight"
             elif self.data_quality["bmi"] >= 18.5 and self.data_quality["bmi"] < 25:
                 self.data_quality["bmi_category"] = "Healthy weight"
@@ -604,7 +666,7 @@ class DicomRawdataListmode:
                 self.data_quality["bmi_category"] = "Overweight"
             elif self.data_quality["bmi"] >= 30 and self.data_quality["bmi"] < 50:
                 self.data_quality["bmi_category"] = "Obese"
-            else:
+            elif self.data_quality["bmi"] >= 50:
                 self.data_quality["bmi_category"] = "Obese or Error"
             #
             # Delete system temp file
@@ -701,6 +763,7 @@ class DicomRawdataListmode:
                     "participant_info": self.participant_info,
                     "scan_info": self.scan_info,
                     "data_quality": self.data_quality,
+                    "pii": self.pii,
                 },
                 file_handler,
                 indent=self.CONFIG["JSON_INDENT"],
