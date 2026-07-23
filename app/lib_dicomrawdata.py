@@ -117,6 +117,7 @@ class DicomRawdataListmode:
         self.scan_info["device_observer_name"] = ""  # 00081010
         self.scan_info["device_observer_model_name"] = ""  # 00081090
         self.scan_info["device_observer_serial_number"] = ""  # 00181000
+        self.scan_info["derivation_description"] = "" # 00082111
         #
         # Data quality
         self.data_quality["bmi"] = 0
@@ -598,6 +599,17 @@ class DicomRawdataListmode:
                     self.scan_info["device_observer_serial_number"] = (
                         self.dicom_rawdata_info["header_json"]["data"]
                         .get("00181000")
+                        .get("Value")[0]
+                    )
+                except:
+                    pass
+            #
+            # derivation_description 00082111
+            if self.dicom_rawdata_info["header_json"]["data"].get("00082111"):
+                try:
+                    self.scan_info["derivation_description"] = (
+                        self.dicom_rawdata_info["header_json"]["data"]
+                        .get("00082111")
                         .get("Value")[0]
                     )
                 except:
