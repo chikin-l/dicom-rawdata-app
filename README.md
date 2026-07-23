@@ -10,9 +10,19 @@ DICOM rawdata medical image app
 Install [Docker for Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
 or [Docker Desktop on Mac](https://docs.docker.com/desktop/setup/install/mac-install/)
 
-Run
+Clone source code
 ```
-docker pull chikinl/dicom-rawdata-app
+gh repo clone chikin-l/dicom-rawdata-app
+```
+
+Change working directory to dicom-rawdata-app
+```
+cd dicom-rawdata-app
+```
+
+Docker compose
+```
+docker compose build
 ```
 
 ### For Windows user
@@ -25,16 +35,13 @@ Install Ubuntu 24.04 from the Microsoft Store
 
 In the Ubuntu 24.04 WSL, install the [Docker for Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
 
-Run
-```
-docker pull chikinl/dicom-rawdata-app
-```
+Follow the steps as "For Linux and Mac user"
 
 <br />
 
 ## How to run
 
-Download the 4 shell scripts
+Since you have downloaded the soure code, you will find the shell scripts.
 
 ### View LISTMODE header
 ```

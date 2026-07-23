@@ -13,9 +13,9 @@ if [[ "${2:-}" == "-vvvv" || "${2:-}" == "--verbose" ]]; then
   VERBOSE="$2"
 fi
 
-docker run --rm \
+docker compose run --rm \
   -v "$(dirname "$FILE"):/input" \
-  chikinl/dicom-rawdata-app \
+  dicom-rawdata-app \
   python dicom_rawdata_listmode.py -fp "/input/$(basename "$FILE")" -ofp "$FILE" -ro $VERBOSE \
   > >(grep -v '\[WARNING\]') 2> >(grep -Ev 'Container .* (Creating|Created)|\[WARNING\]' >&2)
 
